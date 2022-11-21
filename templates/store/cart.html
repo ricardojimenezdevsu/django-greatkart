@@ -83,7 +83,7 @@
                             <img src="{% static './images/misc/payments.png' %}" height="26">
                         </p>
                         <a href="./place-order.html" class="btn btn-primary btn-block"> Checkout </a>
-                        <a href="./store.html" class="btn btn-light btn-block">Continue Shopping</a>
+                        <a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
                     </div> <!-- card-body.// -->
                 </div> <!-- card.// -->
 
@@ -95,7 +95,7 @@
         <h2 class="text-center">Your Cart is Empty</h2>
         <br>
         <div class="text-center">
-            <a href="{% url 'home' %}" class="btn btn-primary">Continue shopping</a>
+            <a href="{% url 'store' %}" class="btn btn-primary">Continue shopping</a>
         </div>
         {% endif %}
         <!-- ============================ COMPONENT 1 END .// ================================= -->
