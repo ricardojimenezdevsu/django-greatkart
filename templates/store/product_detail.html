@@ -18,7 +18,8 @@
                     </article> <!-- gallery-wrap .end// -->
                 </aside>
                 <main class="col-md-6 border-left">
-                    <form action="{% url 'add_cart' product.id %}">
+                    <form action="{% url 'add_cart' product.id %}" method="POST">
+                        {% csrf_token %}
                         <article class="content-body">
     
                             <h2 class="title">{{ product.product_name }}</h2>
@@ -34,10 +35,11 @@
                             <div class="row">
                                 <div class="item-option-select">
                                     <h6>Choose Color</h6>
-                                    <select name="color" id="color" class="form-control">
-                                        <option value="red">Red</option>
-                                        <option value="yellow">Yellow</option>
-                                        <option value="green">Green</option>
+                                    <select name="color" id="color" class="form-control" required>
+                                        <option value="" disabled selected>Select</option>
+                                        {% for item in product.variation_set.colors %}
+                                        <option value="{{item.variation_value | lower}}">{{item.variation_value | capfirst}}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                             </div> <!-- row.// -->
@@ -45,9 +47,10 @@
                                 <div class="item-option-select">
                                     <h6>Select Size</h6>
                                     <select name="size" id="size" class="form-control">
-                                        <option value="small">Small</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="big">Big</option>
+                                        <option value="" disabled selected>Select</option>
+                                        {% for item in product.variation_set.sizes %}
+                                        <option value="{{item.variation_value | lower}}">{{item.variation_value | capfirst}}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                             </div> <!-- row.// -->
