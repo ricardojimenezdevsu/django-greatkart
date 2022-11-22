@@ -100,7 +100,7 @@ def _update_cart(request, user):
     try:
         cart = Cart.objects.get(cart_id=_cart_id(request))
         cart_items = CartItem.objects.filter(cart=cart)
-        if cart_items:
+        if cart_items.count() > 0:
             user_cart_items = CartItem.objects.filter(user=user)
             ex_var_list = []
             id = []
