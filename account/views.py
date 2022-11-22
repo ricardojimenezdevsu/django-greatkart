@@ -19,6 +19,9 @@ from .models import Account
 
 def register(request):
     """A dummy docstring."""
+    user = auth.get_user(request)
+    if user.id:
+        return redirect('dashboard')
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
