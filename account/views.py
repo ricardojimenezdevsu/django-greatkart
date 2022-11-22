@@ -13,14 +13,15 @@ from django.core.mail import EmailMessage
 
 from .forms import RegistrationForm
 from .models import Account
+from cart.models import Cart, CartItem
+from cart.views import _cart_id
 
 # Create your views here.
 
 
 def register(request):
     """A dummy docstring."""
-    user = auth.get_user(request)
-    if user.id:
+    if request.user.is_authenticated:
         return redirect('dashboard')
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -71,6 +72,8 @@ def login(request):
         password = request.POST['password']
         user = auth.authenticate(email=email, password=password)
         if user is not None:
+            # transfer cart items to user if 
+            _update_cart(request,user)
             auth.login(request, user)
             messages.success(request,'You are now logged in')
             return redirect('dashboard')
@@ -78,11 +81,38 @@ def login(request):
             messages.error(request, 'Invalid email/password')
             return redirect('login') 
     user = auth.get_user(request)
-    if user.id:
+    if request.user.is_authenticated:
         return redirect('dashboard')
     
     return render(request, 'account/login.html')
 
+def _update_cart(request, user):
+    try:
+        cart = Cart.objects.get(cart_id=_cart_id(request))
+        cart_items = CartItem.objects.filter(cart=cart)
+        if cart_items:
+            user_cart_items = CartItem.objects.filter(user=user)
+            ex_var_list = []
+            id = []
+            for item in user_cart_items:
+                existing_variation = item.variations.all()
+                ex_var_list.append(list(existing_variation))
+                id.append(item.id)
+
+            for cart_item in cart_items:
+                product_variation = list(cart_item.variations.all())
+                if product_variation in ex_var_list:
+                    # increase the quantity
+                    itemIndex = ex_var_list.index(product_variation)
+                    itemId = id[itemIndex]
+                    item = CartItem.objects.get(id=itemId)
+                    item.quantity += cart_item.quantity
+                    item.save()
+                else:
+                    cart_item.user = user
+                    cart_item.save()
+    except:
+        pass
 @login_required(login_url = 'login')
 def logout(request):
     """A dummy docstring."""
