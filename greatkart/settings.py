@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import environ
+env = environ.Env()
+environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -144,10 +147,9 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
-
 # SMT CONFIG
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'jarjarmex@gmail.com'
-EMAIL_HOST_PASSWORD = 'tbihdmykldavvszg'
-EMAIL_USE_TLS = True
+EMAIL_HOST = f"{env('EMAIL_HOST')}"
+EMAIL_PORT = int(f"{env('EMAIL_PORT')}")
+EMAIL_HOST_USER = f"{env('EMAIL_HOST_USER')}"
+EMAIL_HOST_PASSWORD = f"{env('EMAIL_HOST_PASSWORD')}"
+EMAIL_USE_TLS = bool(f"{env('EMAIL_USE_TLS')}")

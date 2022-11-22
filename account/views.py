@@ -11,6 +11,8 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 
+import requests
+
 from .forms import RegistrationForm
 from .models import Account
 from cart.models import Cart, CartItem
@@ -55,7 +57,7 @@ def register(request):
             request_email = EmailMessage(mail_subject,message,to=[email])
             request_email.send()
             # messages.success(request, 'Thank you for registering with us. We have sent you a verification email.')
-            return redirect('login/?command=verification&email='+email)
+            return redirect('login?command=verification&email='+email)
     else:
         form = RegistrationForm()
 
@@ -75,6 +77,14 @@ def login(request):
             # transfer cart items to user if 
             _update_cart(request,user)
             auth.login(request, user)
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query
+                if 'next' in query:
+                    next_page_index = query.find('/')
+                    return redirect(query[next_page_index:])
+            except:
+                pass
             messages.success(request,'You are now logged in')
             return redirect('dashboard')
         else:
@@ -113,6 +123,7 @@ def _update_cart(request, user):
                     cart_item.save()
     except:
         pass
+
 @login_required(login_url = 'login')
 def logout(request):
     """A dummy docstring."""
