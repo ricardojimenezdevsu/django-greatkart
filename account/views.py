@@ -1,8 +1,15 @@
 """A dummy docstring."""
 from django.shortcuts import render, redirect
 from django.contrib import messages, auth
-from django.contrib.auth.hashers import check_password
 from django.contrib.auth.decorators import login_required
+
+# email
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMessage
 
 from .forms import RegistrationForm
 from .models import Account
@@ -31,8 +38,20 @@ def register(request):
             )
             user.phone_number = phone_number
             user.save()
-            messages.success(request, 'Registrated successfuly')
-            return redirect('register')
+            # user activation
+            current_site = get_current_site(request)
+            mail_subject = 'Please activate your account'
+            # email body
+            message = render_to_string('account/account_verification_email.html',{
+                'user': user,
+                'domain': current_site,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user)
+            })
+            request_email = EmailMessage(mail_subject,message,to=[email])
+            request_email.send()
+            # messages.success(request, 'Thank you for registering with us. We have sent you a verification email.')
+            return redirect('login/?command=verification&email='+email)
     else:
         form = RegistrationForm()
 
@@ -42,21 +61,41 @@ def register(request):
     return render(request, 'account/register.html', context)
 
 
-def loging(request):
+def login(request):
     if request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
         user = auth.authenticate(email=email, password=password)
         if user is not None:
             auth.login(request, user)
-            return redirect('home')
+            return redirect('dashboard')
         else:
             messages.error(request, 'Invalid email/password')
-            return redirect('loging')
-    return render(request, 'account/loging.html')
+            return redirect('login')
+    return render(request, 'account/login.html')
 
-@login_required(login_url = 'loging')
+@login_required(login_url = 'login')
 def logout(request):
     """A dummy docstring."""
     auth.logout(request)
-    return redirect('loging')
+    return redirect('login')
+
+def activate(request,uidb64,token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = Account._default_manager.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, Account.DoesNotExist):
+        user = None
+    if user is not None and default_token_generator.check_token(user,token):
+        user.is_active = True
+        user.save()
+        messages.success(request,'Contratulations! Your account is now activated')
+        return redirect('login')
+    else:
+        messages.error(request,'Invalid registration link')
+        return redirect('register')
+
+
+@login_required(login_url = 'login')
+def dashboard(request):
+    return render(request, 'account/dashboard')

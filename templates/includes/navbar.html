@@ -66,12 +66,12 @@
                             <small class="title text-muted">Welcome {{ user.first_name }}</small>
                             <div>
                                 <a href="{% url 'logout' %}">Log out</a> <span class="dark-transp"> | </span>
-                                <a href=""> Dashboard</a>
+                                <a href="{% url 'dashboard' %}"> Dashboard</a>
                             </div>
                             {% else %}
                             <small class="title text-muted">Welcome guest!</small>
                             <div>
-                                <a href="{% url 'loging' %}">Sign in</a> <span class="dark-transp"> | </span>
+                                <a href="{% url 'login' %}">Sign in</a> <span class="dark-transp"> | </span>
                                 <a href="{% url 'register' %}"> Register</a>
                             </div>
                             {% endif %}
