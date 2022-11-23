@@ -17,6 +17,7 @@ from .forms import RegistrationForm
 from .models import Account
 from cart.models import Cart, CartItem
 from cart.views import _cart_id
+from order.models import Order
 
 # Create your views here.
 
@@ -148,7 +149,12 @@ def activate(request,uidb64,token):
 
 @login_required(login_url = 'login')
 def dashboard(request):
-    return render(request, 'account/dashboard.html')
+    orders = Order.objects.filter(user__id=request.user.id,is_ordered=True).order_by('-created_at')
+    orders_count = orders.count()
+    context = {
+        'orders_count': orders_count
+    }
+    return render(request, 'account/dashboard.html', context)
 
 def forgot_password(request):    
     if request.method == 'POST':
@@ -201,3 +207,11 @@ def reset_password(request):
         messages.success(request,'Your password was successfuly changed')
         return redirect('login')
     return render(request,'account/reset_password.html')
+
+@login_required(login_url = 'login')
+def my_orders(request):
+    orders = Order.objects.filter(user__id=request.user.id,is_ordered=True).order_by('-created_at')
+    context = {
+        'orders': orders
+    }
+    return render(request,'account/my_orders.html', context)

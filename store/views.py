@@ -40,13 +40,16 @@ def product_detail(request,category_slug, product_slug):
         is_in_cart = CartItem.objects.filter(product=product,cart__cart_id=_cart_id(request)).exists()
     except Exception as e:
         raise e
-    try:
-        order_product = OrderProduct.objects.filter(user__id=request.user.id,product__id=product.id).exists()
-    except OrderProduct.DoesNotExist:
-        order_product = None
     user_review = None
-    if order_product:
-        user_review = ReviewRating.objects.get(user__id=request.user.id,product__id=product.id,active=True)
+    if request.user.is_authenticated:
+        try:
+            order_product = OrderProduct.objects.filter(user__id=request.user.id,product__id=product.id).exists()
+        except OrderProduct.DoesNotExist:
+            order_product = None        
+        if order_product:
+            user_review = ReviewRating.objects.get(user__id=request.user.id,product__id=product.id,active=True)
+    else:
+        order_product = None
     reviews = ReviewRating.objects.filter(product__id=product.id,active=True).order_by('-updated_at')
     context = {
         'product': product,
