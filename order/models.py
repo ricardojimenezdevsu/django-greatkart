@@ -52,7 +52,7 @@ class Order(models.Model):
         return f'{self.first_name} {self.last_name}'
 
     def customer_address(self):
-        return f"{self.address_line_1}{' '+self.last_name if self.last_name else '' }"
+        return f"{self.address_line_1}{' '+self.address_line_2 if self.address_line_2 else '' }"
 class OrderProduct(models.Model):
     user = models.ForeignKey(Account,on_delete=models.CASCADE)
     order = models.ForeignKey(Order,on_delete=models.CASCADE)
