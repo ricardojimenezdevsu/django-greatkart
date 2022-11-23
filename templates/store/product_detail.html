@@ -23,8 +23,27 @@
                         {% csrf_token %}
                         <article class="content-body">
     
-                            <h2 class="title">{{ product.product_name }}</h2>
-    
+                            <h2 class="title">
+                                {{ product.product_name }}
+
+                            </h2>
+                            <span>
+                            {% for x in '12345'|make_list %}
+                                {% if forloop.counter <= product.average_review %}
+                                <i class="fa fa-star" aria-hidden="true" style="color: gold;"></i>
+                                {% else %}
+                                    {% if forloop.counter|subtract:product.average_review > 0.5 %}
+                                    <i class="fa-regular fa-star" aria-hidden="true" style="color: gold;"></i>
+                                    {% else %}
+                                    <i class="fa fa-star-half-alt" aria-hidden="true" style="color: gold;"></i>
+                                    {% endif %}
+                                
+                                {% endif %}
+                            {% endfor %}
+                            </span>
+                            <span class="text-muted">
+                                {{product.count_reviews}} Reviews
+                            </span>
                             <div class="mb-3">
                                 <var class="price h4">${{ product.price }}</var>
                             </div>
@@ -110,7 +129,13 @@
                         {% if user.is_authenticated %}
                         
                             {% if order_product %}
-                            <button type="submit" class="btn btn-primary">Submit review</button>
+                            <button type="submit" class="btn btn-primary">
+                                {% if user_review %}
+                                Update review
+                                {% else %}
+                                Submit review
+                                {% endif %}
+                            </button>
                             {% else %}
                             <p>You must buy this product to post a review</p>
                             {% endif %}
@@ -122,7 +147,23 @@
                 </form>
                 <header class="section-heading">
                     <h3>Customer Reviews </h3>
-
+                    <span>
+                    {% for x in '12345'|make_list %}
+                        {% if forloop.counter <= product.average_review %}
+                        <i class="fa fa-star" aria-hidden="true" style="color: gold;"></i>
+                        {% else %}
+                            {% if forloop.counter|subtract:product.average_review > 0.5 %}
+                            <i class="fa-regular fa-star" aria-hidden="true" style="color: gold;"></i>
+                            {% else %}
+                            <i class="fa fa-star-half-alt" aria-hidden="true" style="color: gold;"></i>
+                            {% endif %}
+                        
+                        {% endif %}
+                    {% endfor %}
+                    </span>
+                    <span class="text-muted">
+                        {{product.count_reviews}} Reviews
+                    </span>
                 </header>
                 {% for review in reviews %}
                 <article class="box mb-3">
@@ -136,17 +177,9 @@
                                 
                                 {% for x in '12345'|make_list %}
                                     {% if forloop.counter <= review.rating %}
-                                        {% if review.rating > forloop.counter or review.rating == 5 %}
-                                        <i class="fa fa-star" aria-hidden="true" style="color: gold;"></i>
-                                        {% else %}
-                                            {% if review.rating|mod:2 == 0%}
-                                            <i class="fa fa-star" aria-hidden="true" style="color: gold;"></i>
-                                            {% else %}
-                                            <i class="fa fa-star-half-alt" aria-hidden="true" style="color: gold;"></i>
-                                            {% endif %}
-                                        {% endif %}
+                                    <i class="fa fa-star" aria-hidden="true" style="color: gold;"></i>
                                     {% else %}
-                                        {% if review.rating|mod:2 == 0 %}
+                                        {% if forloop.counter|subtract:review.rating > 0.5 %}
                                         <i class="fa-regular fa-star" aria-hidden="true" style="color: gold;"></i>
                                         {% else %}
                                         <i class="fa fa-star-half-alt" aria-hidden="true" style="color: gold;"></i>
