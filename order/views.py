@@ -1,11 +1,17 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 import datetime
 
 from .forms import OrderForm
 from .models import Order
 from cart.models import CartItem
 # Create your views here.
+
+
+# @login_required(login_url='login')
+def payment(request):
+    return render(request,'order/payment.html')
 
 @login_required(login_url='login')
 def place_order(request):
@@ -21,7 +27,7 @@ def place_order(request):
         total_order += cart_item.quantity * cart_item.product.price
         quantity_order += cart_item.quantity
     tax_order = (total_order * 3) / 100
-    total_order = total_order - tax_order
+    total_order = total_order + tax_order
 
     if request.method == 'POST':
         form = OrderForm(request.POST)
@@ -47,6 +53,15 @@ def place_order(request):
             order_number = f"{datetime.date.today().strftime('%Y%m%d')}{order_data.id}"
             order_data.order_number = order_number
             order_data.save()
-            return redirect('checkout')
+            order = Order.objects.get(user=current_user,is_ordered=False,order_number=order_number)
+            context = {
+                'order': order,
+                'cart_items': cart_items,
+                'subtotal': total_order - tax_order,
+                'tax': tax_order,
+                'total': total_order
+
+            }
+            return render(request,'order/payment.html',context)
         return redirect('checkout')
-    return
+    return redirect('checkout')
