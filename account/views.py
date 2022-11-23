@@ -13,8 +13,8 @@ from django.core.mail import EmailMessage
 
 import requests
 
-from .forms import RegistrationForm
-from .models import Account
+from .forms import RegistrationForm, UserForm, UserProfileForm
+from .models import Account, UserProfile
 from cart.models import Cart, CartItem
 from cart.views import _cart_id
 from order.models import Order
@@ -44,7 +44,7 @@ def register(request):
                 password=password
             )
             user.phone_number = phone_number
-            user.save()
+            user.save()            
             # user activation
             current_site = get_current_site(request)
             mail_subject = 'Please activate your account'
@@ -140,6 +140,11 @@ def activate(request,uidb64,token):
     if user is not None and default_token_generator.check_token(user,token):
         user.is_active = True
         user.save()
+        user_profile = UserProfile(
+            user = user,
+            profile_picture = 'default/default-profile-image.png'
+        )
+        user_profile.save()
         messages.success(request,'Contratulations! Your account is now activated')
         return redirect('login')
     else:
@@ -215,3 +220,44 @@ def my_orders(request):
         'orders': orders
     }
     return render(request,'account/my_orders.html', context)
+
+@login_required(login_url = 'login')
+def edit_profile(request):
+    try:
+        profile = UserProfile.objects.get(user__id=request.user.id)
+    except:
+        profile = None
+        pass
+    if request.method == 'POST':
+        user_form = UserForm(request.POST,instance=request.user)
+        if profile:
+            profile_form = UserProfileForm(request.POST, request.FILES,instance=profile)
+        else:
+            profile = UserProfile(
+                address_line_1 = request.POST['address_line_1'],
+                address_line_2 = request.POST['address_line_2'],
+                profile_picture = request.POST['profile_picture'],
+                city = request.POST['city'],
+                state = request.POST['state'],
+                country = request.POST['country'],
+                user = request.user
+            )
+            profile_form = UserProfileForm(request.POST, request.FILES,instance=profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request,'Your profile has been updated')
+            return redirect('edit_profile')
+        messages.error(request,'Verify if all information is correct')
+        return redirect('edit_profile')
+    user_form = UserForm(instance=request.user)
+    if profile:
+        profile_form = UserProfileForm(instance=profile)
+    else:
+        profile_form = UserProfileForm()
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'profile': profile
+    }
+    return render(request,'account/edit_profile.html', context)
