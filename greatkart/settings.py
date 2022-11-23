@@ -72,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'category.context_processors.menu_links',
                 'cart.context_processors.cart_counter',
+                'greatkart.context_processors.paypal_client_id',
             ],
         },
     },
@@ -148,7 +149,7 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
-# SMT CONFIG
+# mail CONFIG
 EMAIL_HOST = f"{env('EMAIL_HOST')}"
 EMAIL_PORT = int(f"{env('EMAIL_PORT')}")
 EMAIL_HOST_USER = f"{env('EMAIL_HOST_USER')}"

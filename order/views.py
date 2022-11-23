@@ -1,16 +1,80 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import datetime
+import json
+
+# email
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
 
 from .forms import OrderForm
-from .models import Order
+from .models import Order, Payment, OrderProduct
 from cart.models import CartItem
 # Create your views here.
 
 
 # @login_required(login_url='login')
 def payment(request):
+    try:
+        body = json.loads(request.body)
+        order = Order.objects.get(user=request.user,is_ordered=False,order_number = body['orderId'])
+        # create transaction in payment model
+        payment = Payment(
+            user = request.user,
+            payment_id = body['transactionId'],
+            payment_method = body['paymentMethod'],
+            amount_paid = order.total,
+            status = body['status']
+        )
+        payment.save()
+        order.payment = payment
+        order.is_ordered = True
+        order.save()
+        # create products in order
+        cart_items = CartItem.objects.filter(user=request.user)
+        for cart_item in cart_items:
+            product_variations = list(cart_item.variations.all())
+            order_product = OrderProduct(
+                order = order,
+                user = request.user,
+                payment = payment,
+                product = cart_item.product,
+                quantity = cart_item.quantity,
+                product_price = cart_item.product.price,
+                ordered = True
+            )
+            order_product.save()
+            order_product.variations.set(product_variations)
+            order_product.save()
+
+            # update the stock
+            product = cart_item.product
+            product.stock -= cart_item.quantity
+            product.save()
+            # clear cart items
+            cart_item.delete()
+
+        # send email
+        mail_subject = 'Thank you for your purchase!'
+        # email body
+        message = render_to_string('order/order_confirmation_email.html',{
+            'user': request.user,
+            'order': order
+        })
+        request_email = EmailMessage(mail_subject,message,to=[order.email])
+        request_email.send()
+
+        # return a json to client
+        data = {
+            'orderNumber': order.order_number,
+            'transactionId': payment.payment_id
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        print('error')
+        print(e)
+        pass
     return render(request,'order/payment.html')
 
 @login_required(login_url='login')
@@ -65,3 +129,21 @@ def place_order(request):
             return render(request,'order/payment.html',context)
         return redirect('checkout')
     return redirect('checkout')
+
+@login_required(login_url='login')
+def order_completed(request):
+    order_number = request.GET.get('order_number')
+    payment_id = request.GET.get('payment_id')
+
+    try:
+        order = Order.objects.get(order_number=order_number)
+        order_products = OrderProduct.objects.filter(order=order)
+        payment = Payment.objects.get(payment_id=payment_id)
+        context = {
+            'order': order,
+            'products': order_products,
+            'payment': payment
+        }
+        return render(request,'order/order_completed.html', context)
+    except (Order.DoesNotExist, Payment.DoesNotExist):
+        return redirect('home')
