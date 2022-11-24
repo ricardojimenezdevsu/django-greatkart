@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 <!-- ========================= SECTION CONTENT ========================= -->
 <section class="section-conten padding-y bg">
@@ -30,7 +30,7 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center" style="gap: 20px;">
-                                            <img src="https://www.seekpng.com/png/full/428-4287240_no-avatar-user-circle-icon-png.png" alt="Picture" width="50" height="50" style="border-radius: 50%;">
+                                            <img src="{{user.profile_picture_url}}" alt="Profile picture" width="50" style="border-radius: 50%;">
                                             <div>
                                                 <p class="m-0">{{user.email}}</p>
                                                 <p class="m-0">{{user.phone_number}}</p>

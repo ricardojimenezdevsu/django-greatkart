@@ -73,6 +73,14 @@ class Account(AbstractBaseUser):
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
+    def profile_picture_url(self):
+        try:
+            user_profile = UserProfile.objects.get(user__id=self.id)
+            url = user_profile.profile_picture.url
+        except:
+            url = '/media/default/default-profile-image.png'
+        return url
+
 class UserProfile(models.Model):
     user = models.OneToOneField(Account,on_delete=models.CASCADE)
     address_line_1 = models.CharField(blank=True,max_length=100)

@@ -1,5 +1,5 @@
 """A dummy docstring."""
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 
@@ -17,7 +17,7 @@ from .forms import RegistrationForm, UserForm, UserProfileForm
 from .models import Account, UserProfile
 from cart.models import Cart, CartItem
 from cart.views import _cart_id
-from order.models import Order
+from order.models import Order, OrderProduct, Payment
 
 # Create your views here.
 
@@ -142,7 +142,7 @@ def activate(request,uidb64,token):
         user.save()
         user_profile = UserProfile(
             user = user,
-            profile_picture = 'default/default-profile-image.png'
+            profile_picture = '/media/default/default-profile-image.png'
         )
         user_profile.save()
         messages.success(request,'Contratulations! Your account is now activated')
@@ -292,3 +292,17 @@ def edit_password(request):
             print(e)
             pass
     return render(request, 'account/change_password.html')
+
+@login_required(login_url='login')
+def order_detail(request,order_number):
+    order = get_object_or_404(Order,order_number=order_number)
+    order_products = OrderProduct.objects.filter(order=order)
+    context = {
+        'order': order,
+        'products': order_products,
+        'payment': order.payment,
+        'subtotal': order.total - order.tax,
+        'tax': order.tax,
+        'total': order.total
+    }
+    return render(request,'account/order_detail.html', context)

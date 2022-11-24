@@ -14,4 +14,5 @@ urlpatterns = [
     path('my-orders',views.my_orders,name='my_orders'),
     path('edit-profile',views.edit_profile,name='edit_profile'),
     path('edit-password',views.edit_password,name='edit_password'),
+    path('order-detail/<str:order_number>',views.order_detail,name='order_detail'),
 ]
