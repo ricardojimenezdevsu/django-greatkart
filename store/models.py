@@ -34,6 +34,10 @@ class Product(models.Model):
     def count_reviews(self):
         reviews = ReviewRating.objects.filter(product=self,active=True).count()
         return reviews
+    
+    def reviews(self):
+        reviews = ReviewRating.objects.filter(product=self,active=True)
+        return reviews
 
     def gallery(self):
         return ProductGallery.objects.filter(product=self)

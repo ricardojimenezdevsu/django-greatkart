@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load filter_tags %}
 {% block content %}
 <!-- ========================= SECTION MAIN ========================= -->
 <section class="section-intro padding-y-sm">
@@ -31,6 +32,20 @@
 			<figcaption class="info-wrap">
 				<a href="{{ product.get_url }}" class="title">{{ product.product_name }}</a>
 				<div class="price mt-1">${{ product.price }}</div> <!-- price-wrap.// -->
+				<span>
+				{% for x in '12345'|make_list %}
+					{% if forloop.counter <= product.average_review %}
+					<i class="fa fa-star" aria-hidden="true" style="color: gold;"></i>
+					{% else %}
+						{% if forloop.counter|subtract:product.average_review > 0.5 %}
+						<i class="fa-regular fa-star" aria-hidden="true" style="color: gold;"></i>
+						{% else %}
+						<i class="fa fa-star-half-alt" aria-hidden="true" style="color: gold;"></i>
+						{% endif %}
+					
+					{% endif %}
+				{% endfor %}
+				</span>
 			</figcaption>
 		</div>
 	</div> <!-- col.// -->
