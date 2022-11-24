@@ -261,3 +261,34 @@ def edit_profile(request):
         'profile': profile
     }
     return render(request,'account/edit_profile.html', context)
+
+@login_required(login_url='login')
+def edit_password(request):
+    if request.method == 'POST':
+        current_password = request.POST['current_password']
+        new_password = request.POST['new_password']
+        confirm_new_password = request.POST['confirm_new_password']
+        user = Account.objects.get(id=request.user.id)
+        print(user.id)
+        try:
+            is_valid_old_password = user.check_password(current_password)
+            print(is_valid_old_password)
+            if is_valid_old_password:
+                efe = 'efe'
+               
+                if new_password and len(new_password) > 7:
+                    if new_password == confirm_new_password:
+                        user.set_password(new_password)
+                        user.save()
+                        messages.success(request,'Password changed correctly')
+                        return redirect('edit_password')
+                    messages.error(request,'New password and confirm password do not match')
+                    return redirect('edit_password')
+                messages.error(request,'New password must have at least 8 characters')
+                return redirect('edit_password')
+            messages.error(request,'You type an incorrect current password. Try again')
+            return redirect('edit_password')
+        except Exception as e:
+            print(e)
+            pass
+    return render(request, 'account/change_password.html')
