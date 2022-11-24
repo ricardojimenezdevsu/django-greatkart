@@ -39,11 +39,13 @@
     <script type="text/javascript">
         /// some script
         var csrftoken = '{{ csrf_token }}';
-        console.log(csrftoken)
         // jquery ready start
         $(document).ready(function () {
             // jQuery code
-
+            $('.thumb a').click((event) => {
+                event.preventDefault();
+                $('.mainImage img').attr('src',event.target.currentSrc)
+            })
         });
 // jquery end
     </script>

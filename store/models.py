@@ -35,6 +35,9 @@ class Product(models.Model):
         reviews = ReviewRating.objects.filter(product=self,active=True).count()
         return reviews
 
+    def gallery(self):
+        return ProductGallery.objects.filter(product=self)
+
 class VariationManager(models.Manager):
     def colors(self):
         return super(VariationManager,self).filter(variation_category='color', is_active=True)
@@ -70,3 +73,17 @@ class ReviewRating(models.Model):
 
     def __str__(self) -> str:
         return self.subject
+
+class ProductGallery(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='store/products/', max_length=255)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return self.product.product_name
+
+    class Meta:
+        verbose_name = 'productgallery'
+        verbose_name_plural = 'product gallery'
